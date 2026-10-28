@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md"]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: macos-15 # arm64, matches the target platform
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift build
+      - run: swift test
