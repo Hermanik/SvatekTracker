@@ -47,6 +47,8 @@ Vyžaduje Xcode (Swift 6.2+). Cíl: **arm64, macOS 14+**.
 
 ## Distribuce
 
-Zatím jen lokální instalace (`scripts/install.sh`). Sparkle auto-update, DMG,
-notarizace a download stránka (vzor MonitorTracker/GitTracker) zatím nejsou —
-bundle ID `com.hermanik.svatektracker` po prvním veřejném vydání neměnit.
+Open source (MIT), veřejné repo `Hermanik/SvatekTracker`. Zatím jen build ze
+zdrojáků (`scripts/install.sh`). Sparkle auto-update, DMG, notarizace a download
+stránka (vzor MonitorTracker/GitTracker) zatím nejsou — bundle ID
+`com.hermanik.svatektracker` po prvním vydání neměnit. Screenshoty v `docs/`
+jsou z `SVATEKTRACKER_SNAPSHOT`.

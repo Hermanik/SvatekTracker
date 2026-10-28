@@ -1,6 +1,13 @@
 # SvátekTracker
 
+*Kdo má dnes svátek — v menu baru tvého Macu.*
+
 Native macOS menubar app (Apple Silicon) for Czech name days and public holidays.
+
+<p>
+  <img src="docs/jmeniny.png" width="340" alt="Upcoming name days">
+  <img src="docs/svatky.png" width="340" alt="Upcoming public holidays">
+</p>
 
 - **Menu bar** shows who celebrates today — or the holiday on name-less days.
   A flag marks public holidays, a star a tracked name.
@@ -9,12 +16,45 @@ Native macOS menubar app (Apple Silicon) for Czech name days and public holidays
 - **Track names** (search, then star) to get a reminder the evening before and
   the morning of their name day. Opt-in heads-up the evening before shops close.
 - Rolls over at midnight and after sleep; right-click for launch at login.
+- No network access, no telemetry — everything is computed locally.
 
-## Build
+## Install
+
+There's no prebuilt download yet; build from source. Requires an Apple Silicon
+Mac with macOS 14+ and Xcode (Swift 6.2+).
 
 ```sh
-swift test               # core logic
-scripts/install.sh       # build, install to /Applications, launch
+git clone https://github.com/Hermanik/SvatekTracker.git
+cd SvatekTracker
+scripts/install.sh       # build, copy to /Applications, launch
 ```
 
-See [CLAUDE.md](CLAUDE.md) for the full command list and architecture.
+The bundle is signed with your Developer ID if one is in the keychain, otherwise
+ad-hoc — fine for running it on your own Mac.
+
+## Development
+
+```sh
+swift build
+swift test                                   # core logic
+swift run SvatekTracker                      # quick run (no reminders without a bundle)
+mkdir -p /tmp/snap && SVATEKTRACKER_SNAPSHOT=/tmp/snap swift run   # panel → PNGs
+swift format lint -r -s Sources Tests
+```
+
+`Sources/SvatekTrackerCore` holds all calendar logic with no system dependencies
+and full test coverage; `Sources/SvatekTracker` is the AppKit/SwiftUI shell.
+More in [CLAUDE.md](CLAUDE.md).
+
+## Data
+
+- **Name days** — the Czech civil name-day calendar (`NameDays.swift`).
+- **Public holidays** — days off under zákon č. 245/2000 Sb., Good Friday and
+  Easter Monday computed from Easter (`Holidays.swift`).
+- **Shop closures** — shops over 200 m² under zákon č. 223/2016 Sb.
+
+Spotted a wrong date? Open an issue or a PR with a source — and a test.
+
+## License
+
+[MIT](LICENSE)
