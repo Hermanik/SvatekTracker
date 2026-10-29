@@ -20,7 +20,7 @@ public struct Holiday: Hashable, Sendable {
         case closed
         case closedFromNoon
 
-        /// Short form for the holiday banner; nil when the shops are open.
+        /// Short form for the holiday banner and list; nil when the shops are open.
         public var label: String? {
             switch self {
             case .open: nil

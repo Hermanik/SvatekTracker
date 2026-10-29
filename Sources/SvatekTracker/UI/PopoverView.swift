@@ -204,13 +204,14 @@ private struct HolidayRow: View {
                 Text("\(CzechText.shortDate(holiday.day)) · \(holiday.kind.label)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                if let shops = holiday.shops.label {
+                    Text(shops)
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                        .help(holiday.shops.detail ?? "")
+                }
             }
             Spacer()
-            if let detail = holiday.shops.detail {
-                Image(systemName: "cart.badge.minus")
-                    .foregroundStyle(.orange)
-                    .help(detail)
-            }
             RelativeDays(days: days)
         }
         .padding(.vertical, 5)
