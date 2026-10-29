@@ -56,7 +56,8 @@ final class Reminders: NSObject, UNUserNotificationCenterDelegate {
         content.body = reminder.body
         content.sound = .default
         let when = DateComponents(
-            year: reminder.day.year, month: reminder.day.month, day: reminder.day.day, hour: reminder.hour)
+            year: reminder.day.year, month: reminder.day.month, day: reminder.day.day, hour: reminder.time.hour,
+            minute: reminder.time.minute)
         return UNNotificationRequest(
             identifier: reminder.id, content: content,
             trigger: UNCalendarNotificationTrigger(dateMatching: when, repeats: false))

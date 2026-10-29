@@ -41,10 +41,14 @@ struct SettingsView: View {
             }
 
             Section {
-                Toggle("Večer předem v \(ReminderPlan.eveningHour):00", isOn: $model.remindEveningBefore)
-                Toggle("Ráno v den svátku v \(ReminderPlan.morningHour):00", isOn: $model.remindMorningOf)
-                Toggle("Večer předem upozornit na zavřené obchody", isOn: $model.remindShopClosures)
-                    .help("Před svátky, kdy velké obchody zavírají")
+                ReminderRow(title: "Den před jmeninami", isOn: $model.remindDayBefore, time: $model.dayBeforeTime)
+                    .help("Připomene svátek hlídaných jmen den předem")
+                ReminderRow(title: "V den jmenin", isOn: $model.remindOnTheDay, time: $model.onTheDayTime)
+                    .help("Připomene svátek hlídaných jmen v ten den")
+                ReminderRow(
+                    title: "Den před zavřením obchodů", isOn: $model.remindShopClosures, time: $model.shopClosuresTime
+                )
+                .help("Před svátky, kdy velké obchody zavírají")
             } header: {
                 Text("Upozornění")
             } footer: {
@@ -67,5 +71,34 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             loginStatus = LoginItem.status
         }
+    }
+}
+
+/// A reminder's switch with the time it fires at, greyed out while it's off.
+private struct ReminderRow: View {
+    let title: String
+    @Binding var isOn: Bool
+    @Binding var time: TimeOfDay
+
+    var body: some View {
+        LabeledContent(title) {
+            HStack {
+                DatePicker(title, selection: date, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
+                    .environment(\.timeZone, .gmt)
+                    .disabled(!isOn)
+                Toggle(title, isOn: $isOn)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+            }
+        }
+    }
+
+    /// The picker edits a `Date`: minutes past the reference midnight, shown
+    /// in UTC, where no DST shift can move the time.
+    private var date: Binding<Date> {
+        Binding(
+            get: { Date(timeIntervalSinceReferenceDate: TimeInterval(time.minutes * 60)) },
+            set: { time = TimeOfDay(minutes: Int(($0.timeIntervalSinceReferenceDate / 60).rounded(.down))) })
     }
 }

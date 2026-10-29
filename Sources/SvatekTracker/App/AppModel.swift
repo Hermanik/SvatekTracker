@@ -10,11 +10,18 @@ final class AppModel: ObservableObject {
     @Published private(set) var today = Day.today()
     /// Calendar names the user wants reminders for, in the order added.
     @Published private(set) var trackedNames: [String]
-    /// Name-day reminders for tracked names: the evening before, the morning of.
-    @Published var remindEveningBefore: Bool { didSet { save(remindEveningBefore, as: Keys.eveningBefore) } }
-    @Published var remindMorningOf: Bool { didSet { save(remindMorningOf, as: Keys.morningOf) } }
-    /// Evening heads-up before a holiday closes large shops.
+    /// Name-day reminders for tracked names: the day before, on the day.
+    @Published var remindDayBefore: Bool { didSet { save(remindDayBefore, as: Keys.dayBefore) } }
+    @Published var remindOnTheDay: Bool { didSet { save(remindOnTheDay, as: Keys.onTheDay) } }
+    /// Heads-up the day before a holiday closes large shops.
     @Published var remindShopClosures: Bool { didSet { save(remindShopClosures, as: Keys.shopClosures) } }
+    /// When each reminder fires; kept while it's off, so switching back on
+    /// restores the user's time.
+    @Published var dayBeforeTime: TimeOfDay { didSet { save(dayBeforeTime.minutes, as: Keys.dayBeforeTime) } }
+    @Published var onTheDayTime: TimeOfDay { didSet { save(onTheDayTime.minutes, as: Keys.onTheDayTime) } }
+    @Published var shopClosuresTime: TimeOfDay {
+        didSet { save(shopClosuresTime.minutes, as: Keys.shopClosuresTime) }
+    }
     /// Today's names next to the menu bar icon; off leaves just the icon.
     @Published var showNamesInMenuBar: Bool {
         didSet { defaults.set(showNamesInMenuBar, forKey: Keys.showNames) }
@@ -28,18 +35,30 @@ final class AppModel: ObservableObject {
 
     private enum Keys {
         static let trackedNames = "trackedNames"
-        static let eveningBefore = "remindEveningBefore"
-        static let morningOf = "remindMorningOf"
+        // Named before the times became adjustable; stored, so they stay.
+        static let dayBefore = "remindEveningBefore"
+        static let onTheDay = "remindMorningOf"
         static let shopClosures = "remindShopClosures"
+        static let dayBeforeTime = "dayBeforeMinutes"
+        static let onTheDayTime = "onTheDayMinutes"
+        static let shopClosuresTime = "shopClosuresMinutes"
         static let showNames = "showNamesInMenuBar"
     }
 
     init() {
-        defaults.register(defaults: [Keys.eveningBefore: true, Keys.morningOf: true, Keys.showNames: true])
+        defaults.register(defaults: [
+            Keys.dayBefore: true, Keys.onTheDay: true, Keys.showNames: true,
+            Keys.dayBeforeTime: ReminderPlan.defaultDayBefore.minutes,
+            Keys.onTheDayTime: ReminderPlan.defaultOnTheDay.minutes,
+            Keys.shopClosuresTime: ReminderPlan.defaultShopClosures.minutes,
+        ])
         trackedNames = defaults.stringArray(forKey: Keys.trackedNames) ?? []
-        remindEveningBefore = defaults.bool(forKey: Keys.eveningBefore)
-        remindMorningOf = defaults.bool(forKey: Keys.morningOf)
+        remindDayBefore = defaults.bool(forKey: Keys.dayBefore)
+        remindOnTheDay = defaults.bool(forKey: Keys.onTheDay)
         remindShopClosures = defaults.bool(forKey: Keys.shopClosures)
+        dayBeforeTime = TimeOfDay(minutes: defaults.integer(forKey: Keys.dayBeforeTime))
+        onTheDayTime = TimeOfDay(minutes: defaults.integer(forKey: Keys.onTheDayTime))
+        shopClosuresTime = TimeOfDay(minutes: defaults.integer(forKey: Keys.shopClosuresTime))
         showNamesInMenuBar = defaults.bool(forKey: Keys.showNames)
 
         let center = NotificationCenter.default
@@ -77,16 +96,18 @@ final class AppModel: ObservableObject {
     }
 
     /// Persists a reminder setting and reschedules with it.
-    private func save(_ value: Bool, as key: String) {
+    private func save(_ value: Any, as key: String) {
         defaults.set(value, forKey: key)
         scheduleReminders()
     }
 
     private func scheduleReminders() {
-        let hour = Calendar.current.component(.hour, from: Date())
         let plan = ReminderPlan.make(
-            trackedNames: trackedNames, eveningBefore: remindEveningBefore, morningOf: remindMorningOf,
-            shopClosures: remindShopClosures, today: today, hour: hour)
+            trackedNames: trackedNames,
+            dayBefore: remindDayBefore ? dayBeforeTime : nil,
+            onTheDay: remindOnTheDay ? onTheDayTime : nil,
+            shopClosures: remindShopClosures ? shopClosuresTime : nil,
+            today: today, now: TimeOfDay(Date()))
         reminders.schedule(plan) { [weak self] allowed in self?.notificationsDenied = !allowed }
     }
 }
