@@ -13,11 +13,12 @@ Native macOS menubar app (Apple Silicon) for Czech name days and public holidays
   A flag marks public holidays, a star a tracked name.
 - **Click** for today in detail, the next 30 name days, the coming year's public
   holidays (with Easter computed), and which ones close large shops.
-- **Track names** (search, then star) to get a reminder the evening before and
-  the morning of their name day. Opt-in heads-up the evening before shops close.
+- **Track names** (search, then star) to get a reminder the day before and on
+  their name day. Opt-in heads-up the day before shops close.
 - **Settings** (⚙︎ Nastavení… in the panel, or right-click the menu bar item):
   launch at login (on by default), names or just an icon in the menu bar, which
-  reminders to send, and automatic update checks.
+  reminders to send and when (18:00 the day before and 8:00 on the day by
+  default), and automatic update checks.
 - Rolls over at midnight and after sleep.
 - Updates itself via [Sparkle](https://sparkle-project.org).
 - Everything is computed locally. The only network traffic is Sparkle's daily
