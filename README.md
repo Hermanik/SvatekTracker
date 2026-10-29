@@ -16,12 +16,18 @@ Native macOS menubar app (Apple Silicon) for Czech name days and public holidays
 - **Track names** (search, then star) to get a reminder the evening before and
   the morning of their name day. Opt-in heads-up the evening before shops close.
 - Rolls over at midnight and after sleep; right-click for launch at login.
-- No network access, no telemetry — everything is computed locally.
+- Updates itself via [Sparkle](https://sparkle-project.org).
+- Everything is computed locally. The only network traffic is Sparkle's daily
+  update check, which includes Sparkle's anonymous system profile (macOS
+  version, CPU type) — no accounts, no analytics SDK.
 
 ## Install
 
-There's no prebuilt download yet; build from source. Requires an Apple Silicon
-Mac with macOS 14+ and Xcode (Swift 6.2+).
+**[Download the DMG](https://svatektracker.jsemkoder.cz)** — signed with
+Developer ID and notarized; open it and drag the app to Applications. Requires
+an Apple Silicon Mac with macOS 14+.
+
+Or build from source (needs Xcode, Swift 6.2+):
 
 ```sh
 git clone https://github.com/Hermanik/SvatekTracker.git
@@ -29,8 +35,8 @@ cd SvatekTracker
 scripts/install.sh       # build, copy to /Applications, launch
 ```
 
-The bundle is signed with your Developer ID if one is in the keychain, otherwise
-ad-hoc — fine for running it on your own Mac.
+A source build is signed with your Developer ID if one is in the keychain,
+otherwise ad-hoc — fine for running it on your own Mac.
 
 ## Development
 

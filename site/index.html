@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SvátekTracker — kdo má dnes svátek, v menu baru Macu</title>
+<meta name="description" content="Nativní macOS appka do menu baru: české jmeniny, státní svátky a připomínky svátků blízkých. Zdarma, open source.">
+<meta name="robots" content="noindex, nofollow">
+<!-- Open Graph / link previews (iMessage, Slack, Teams, X). noindex above only
+     hides us from search engines; share-card scrapers still read these. -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://svatektracker.jsemkoder.cz/">
+<meta property="og:site_name" content="SvátekTracker">
+<meta property="og:title" content="SvátekTracker — kdo má dnes svátek, v menu baru Macu">
+<meta property="og:description" content="České jmeniny a státní svátky v menu baru. Připomene svátky blízkých den předem. Zdarma, open source.">
+<meta property="og:image" content="https://svatektracker.jsemkoder.cz/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta property="og:image:alt" content="SvátekTracker — kdo má dnes svátek, v menu baru Macu.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SvátekTracker — kdo má dnes svátek, v menu baru Macu">
+<meta name="twitter:description" content="České jmeniny a státní svátky v menu baru. Zdarma, open source.">
+<meta name="twitter:image" content="https://svatektracker.jsemkoder.cz/og.png">
+<link rel="icon" href="icon.png">
+<style>
+  :root{
+    --bg:#141620; --line:#2b2f44;
+    --text:#f2eee6; --muted:#a7a3b5; --dim:#6f6c82;
+    --red:#e5484d; --pink:#ff8fab; --yellow:#ffcc00; --green:#3fae6a;
+    --sans:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;
+    --round:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:radial-gradient(120% 80% at 80% 0%,#262a42 0%,var(--bg) 60%) fixed;
+    color:var(--text);font-family:var(--sans);line-height:1.55;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+
+  /* ---- top bar ---- */
+  .bar{display:flex;align-items:center;justify-content:space-between;padding:26px 0}
+  .mark{font-family:var(--round);font-weight:800;font-size:1.1rem;display:flex;align-items:center;gap:10px}
+  .mark img{width:30px;height:30px}
+  .bar .right{display:flex;gap:10px;align-items:center}
+  .pill{font-size:.8rem;color:var(--muted);border:1px solid var(--line);
+    padding:5px 11px;border-radius:999px;background:#1b1e2c99}
+  .pill.free{color:var(--green);border-color:#3fae6a55}
+  .pill:hover{border-color:#4a4f6b}
+
+  /* ---- hero ---- */
+  .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center;padding:48px 0 90px}
+  .eyebrow,.sec-head{font-size:.76rem;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;font-weight:600}
+  .eyebrow{margin-bottom:20px}
+  h1{font-family:var(--round);font-weight:800;font-size:clamp(2.4rem,5.4vw,4rem);
+    line-height:1.03;letter-spacing:-.03em;margin-bottom:22px}
+  h1 .accent{background:linear-gradient(100deg,var(--pink),var(--red) 55%,var(--yellow));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:1.15rem;color:var(--muted);max-width:30em;margin-bottom:34px}
+  .lede b{color:var(--text);font-weight:600}
+
+  .cta-row{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  .dl{display:inline-flex;align-items:center;gap:11px;font-weight:650;font-size:1.02rem;
+    color:#fff;background:linear-gradient(180deg,#ef6a6e,var(--red));
+    padding:15px 24px;border-radius:13px;border:1px solid #f08588;
+    box-shadow:0 12px 30px -12px #e5484daa, inset 0 1px 0 #ffffff44;
+    transition:transform .15s ease, box-shadow .15s ease}
+  .dl:hover{transform:translateY(-2px);box-shadow:0 18px 40px -14px #e5484dcc, inset 0 1px 0 #ffffff55}
+  .dl:active{transform:translateY(0)}
+  .dl svg{width:17px;height:17px}
+  .dl-meta{font-size:.8rem;color:var(--dim);line-height:1.7}
+  .dl-meta .ok{color:var(--green)}
+  .ota{margin-top:20px;font-size:.92rem;color:var(--dim)}
+  .ota b{color:var(--pink);font-weight:600}
+
+  .shot{justify-self:center;position:relative}
+  .shot img{width:340px;max-width:100%;border-radius:14px;display:block;
+    box-shadow:0 40px 80px -30px #000d, 0 0 0 1px #ffffff14}
+  .shot::before{content:"";position:absolute;inset:-40px;z-index:-1;
+    background:radial-gradient(closest-side,#ff8fab33,transparent)}
+
+  /* ---- features ---- */
+  .sec-head{margin-bottom:24px;display:flex;align-items:center;gap:14px}
+  .sec-head::after{content:"";flex:1;height:1px;background:var(--line)}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:96px}
+  .feat{border:1px solid var(--line);border-radius:15px;padding:24px;background:#1b1e2c80;
+    transition:border-color .2s ease, transform .2s ease}
+  .feat:hover{transform:translateY(-3px);border-color:#43486a}
+  .feat .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;margin-bottom:16px;font-size:1.05rem}
+  .feat h3{font-size:1.04rem;font-weight:650;margin-bottom:7px}
+  .feat p{color:var(--muted);font-size:.93rem}
+  .c-red .ic{background:#e5484d24} .c-pink .ic{background:#ff8fab24} .c-yellow .ic{background:#ffcc0024}
+  .c-green .ic{background:#3fae6a24} .c-paper .ic{background:#f7f4ee1f}
+
+  /* ---- open source + closing ---- */
+  .oss{border:1px solid var(--line);border-radius:18px;background:#1b1e2c80;padding:34px;
+    display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:80px}
+  .oss h2{font-family:var(--round);font-size:1.4rem;margin-bottom:6px}
+  .oss p{color:var(--muted);max-width:36em}
+  .gh{display:inline-flex;align-items:center;gap:10px;font-weight:600;border:1px solid var(--line);
+    padding:12px 20px;border-radius:12px;background:#ffffff08;transition:border-color .2s ease}
+  .gh:hover{border-color:#5a6080}
+  .gh svg{width:18px;height:18px}
+  .close{text-align:center;padding:10px 0 40px}
+  .close .req{font-size:.82rem;color:var(--dim);margin-top:18px}
+  footer{border-top:1px solid var(--line);padding:30px 0 60px;text-align:center;font-size:.82rem;color:var(--dim)}
+  footer b{color:var(--muted);font-weight:500}
+
+  @media (max-width:860px){
+    .hero{grid-template-columns:1fr;gap:40px;padding-top:24px}
+    .grid{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){ .feat,.dl{transition:none} }
+  :focus-visible{outline:2px solid var(--pink);outline-offset:3px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="bar">
+    <div class="mark"><img src="icon.png" alt="">SvátekTracker</div>
+    <div class="right">
+      <a class="pill" href="https://github.com/Hermanik/SvatekTracker">GitHub</a>
+      <span class="pill free">Zdarma · v{{VERSION}}</span>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Nativní appka do menu baru · Apple Silicon</div>
+      <h1>Kdo má dnes svátek?<br><span class="accent">Mac to ví.</span></h1>
+      <p class="lede">SvátekTracker ukazuje <b>dnešní jmeniny</b> přímo v menu baru, hlídá
+        <b>státní svátky</b> i dny, kdy mají velké obchody zavřeno, a <b>den předem připomene</b>
+        svátek tvých blízkých. Žádné okno, žádná ikona v Docku.</p>
+      <div class="cta-row">
+        <a class="dl" href="SvatekTracker-latest.dmg" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l4-4m-4 4l-4-4M5 21h14"/></svg>
+          Stáhnout pro macOS
+        </a>
+        <div class="dl-meta">Zdarma · v{{VERSION}} · Apple Silicon · macOS 14+<br><span class="ok">Developer&nbsp;ID, notarizováno Applem</span></div>
+      </div>
+      <div class="ota">↻ <b>Aktualizuje se sama</b> — tuhle stránku už podruhé potřebovat nebudeš.</div>
+    </div>
+    <div class="shot"><img src="screenshot.png" alt="Panel SvátekTrackeru s nadcházejícími jmeninami"></div>
+  </header>
+
+  <section aria-label="Funkce">
+    <div class="sec-head">Co umí</div>
+    <div class="grid">
+      <div class="feat c-pink"><div class="ic">🌷</div><h3>Jmeniny v liště</h3><p>Dnešní jméno pořád na očích. O půlnoci a po probuzení se samo přepne na další den.</p></div>
+      <div class="feat c-red"><div class="ic">🇨🇿</div><h3>Státní svátky</h3><p>Všechny dny volna na rok dopředu včetně Velikonoc, s odpočtem „za 20 dní“.</p></div>
+      <div class="feat c-yellow"><div class="ic">⭐</div><h3>Hlídaná jména</h3><p>Hvězdičkou si označ jména blízkých — upozornění přijde večer předem a ráno v den svátku.</p></div>
+      <div class="feat c-green"><div class="ic">🛒</div><h3>Zavřené obchody</h3><p>Vidíš, kdy mají obchody nad 200 m² zavřeno, a volitelně dostaneš upozornění den předem.</p></div>
+      <div class="feat c-paper"><div class="ic">🔍</div><h3>Kdy má svátek…?</h3><p>Hledání bez háčků a čárek: „sarl“ najde Šarlotu i s datem a počtem dní.</p></div>
+      <div class="feat c-pink"><div class="ic">↻</div><h3>Aktualizace samy</h3><p>Podepsané a notarizované aktualizace přímo v appce. Jedno kliknutí a máš nejnovější verzi.</p></div>
+    </div>
+  </section>
+
+  <section class="oss">
+    <div>
+      <h2>Open source, MIT</h2>
+      <p>Celý kód je na GitHubu. Našel jsi v kalendáři chybu? Pošli issue nebo pull request — ideálně se zdrojem.</p>
+    </div>
+    <a class="gh" href="https://github.com/Hermanik/SvatekTracker">
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      Hermanik/SvatekTracker
+    </a>
+  </section>
+
+  <section class="close">
+    <a class="dl" href="SvatekTracker-latest.dmg" download>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l4-4m-4 4l-4-4M5 21h14"/></svg>
+      Stáhnout SvátekTracker
+    </a>
+    <div class="req">Vyžaduje Mac s Apple Silicon a macOS 14 nebo novější.</div>
+  </section>
+
+  <footer>
+    SvátekTracker — nativní macOS ve <b>Swiftu</b>, <b>AppKitu</b> a <b>SwiftUI</b> · Jan Herrmann
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="cs">
+<!-- Source for site/og.png (the social-share card). Regenerate with
+     scripts/make-og.sh after editing. Fixed 1200x630 canvas (the OG ratio);
+     deliberately version-free so the cached preview never goes stale. -->
+<head>
+<meta charset="utf-8">
+<style>
+  :root{
+    --bg:#141620; --line:#2b2f44; --text:#f2eee6; --muted:#a7a3b5;
+    --red:#e5484d; --pink:#ff8fab; --yellow:#ffcc00; --green:#3fae6a;
+    --round:ui-rounded,'SF Pro Rounded',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    --sans:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1200px;height:630px;overflow:hidden}
+  body{background:radial-gradient(120% 140% at 80% 0%,#262a42 0%,var(--bg) 60%);
+    color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .card{position:fixed;inset:0;display:grid;grid-template-columns:1fr 360px;gap:60px;padding:70px 80px}
+  .left{display:flex;flex-direction:column;justify-content:center}
+  .mark{display:flex;align-items:center;gap:16px;margin-bottom:34px}
+  .mark img{width:58px;height:58px}
+  .mark .name{font-family:var(--round);font-weight:800;font-size:32px}
+  h1{font-family:var(--round);font-weight:800;font-size:72px;line-height:1.02;letter-spacing:-.03em;margin-bottom:28px}
+  h1 .accent{background:linear-gradient(100deg,var(--pink),var(--red) 55%,var(--yellow));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:25px;line-height:1.45;color:var(--muted);max-width:18em}
+  .pills{display:flex;gap:12px;margin-top:36px}
+  .pill{font-size:17px;font-weight:500;color:var(--muted);border:1px solid var(--line);padding:8px 16px;border-radius:999px}
+  .pill.free{color:var(--green);border-color:#3fae6a66}
+  .shot{align-self:center;position:relative}
+  .shot img{width:360px;border-radius:16px;display:block;box-shadow:0 50px 90px -40px #000e,0 0 0 1px #ffffff14}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="left">
+    <div class="mark"><img src="icon.png" alt=""><span class="name">SvátekTracker</span></div>
+    <h1>Kdo má dnes svátek?<br><span class="accent">Mac to ví.</span></h1>
+    <p class="lede">České jmeniny a státní svátky v menu baru. Svátky blízkých připomene den předem.</p>
+    <div class="pills"><span class="pill free">Zdarma</span><span class="pill">Open source</span><span class="pill">macOS 14+</span></div>
+  </div>
+  <div class="shot"><img src="screenshot.png" alt=""></div>
+</div>
+</body>
+</html>

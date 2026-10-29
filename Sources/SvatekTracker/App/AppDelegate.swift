@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: PopoverPanel!
     private var dismissMonitor: Any?
     private let model = AppModel()
+    private let updater = Updater()
     private var subscriptions = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -75,7 +76,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showMenu() {
         guard let button = statusItem.button else { return }
         let menu = NSMenu()
+        menu.autoenablesItems = false
         menu.addItem(withTitle: "O aplikaci SvátekTracker", action: #selector(showAbout), keyEquivalent: "")
+        let updates = NSMenuItem(
+            title: "Zkontrolovat aktualizace…", action: #selector(checkForUpdates), keyEquivalent: "")
+        updates.isEnabled = updater.isAvailable
+        menu.addItem(updates)
         let login = NSMenuItem(title: "Spouštět po přihlášení", action: #selector(toggleLoginItem), keyEquivalent: "")
         login.state = LoginItem.isEnabled ? .on : .off
         menu.addItem(login)
@@ -84,6 +90,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         for item in menu.items { item.target = self }
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height + 4), in: button)
     }
+
+    @objc private func checkForUpdates() { updater.checkForUpdates() }
 
     @objc private func toggleLoginItem() { LoginItem.setEnabled(!LoginItem.isEnabled) }
 

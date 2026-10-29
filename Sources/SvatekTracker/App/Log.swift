@@ -7,4 +7,5 @@ enum Log {
     private static let subsystem = "com.hermanik.svatektracker"
     static let app = Logger(subsystem: subsystem, category: "app")
     static let reminders = Logger(subsystem: subsystem, category: "reminders")
+    static let updater = Logger(subsystem: subsystem, category: "updater")
 }

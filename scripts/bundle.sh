@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Builds dist/SvátekTracker.app from a release build: bundle structure,
-# Info.plist (menubar-only via LSUIElement), the committed icon, and a code
-# signature. A real bundle is what notifications and launch-at-login need —
-# `swift run` has neither.
+# Info.plist (menubar-only via LSUIElement), the committed icon, an embedded
+# Sparkle.framework, and a code signature — enough for local use. A real bundle
+# is what notifications, launch-at-login and updates need; `swift run` has none.
+# The Developer ID + notarization pipeline for sharing lives in release-dmg.sh.
 #
 # Signs with the Developer ID identity when it's in the keychain (a stable,
 # cert-based requirement, so the login item survives rebuilds), else ad-hoc.
@@ -18,6 +19,13 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp .build/release/SvatekTracker "$APP/Contents/MacOS/SvatekTracker"
 cp assets/SvatekTracker.icns "$APP/Contents/Resources/"
+
+# Sparkle drives in-app updates; the app dlopen's it from Frameworks at runtime.
+# Embedded with Sparkle's own signature (fine for local use); the Developer ID
+# inside-out re-sign for notarization lives in release-dmg.sh.
+scripts/fetch-sparkle.sh
+mkdir -p "$APP/Contents/Frameworks"
+ditto vendor/Sparkle/Sparkle.framework "$APP/Contents/Frameworks/Sparkle.framework"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -54,6 +62,16 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>© $(date +%Y) Jan Herrmann</string>
+	<key>SUFeedURL</key>
+	<string>https://updates.jsemkoder.cz/svatektracker/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>pq7Ii6KiVqQY+fIyRMCpV7SpfUycaFGAp+ZCEkGktyo=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
+	<key>SUEnableSystemProfiling</key>
+	<true/>
 </dict>
 </plist>
 PLIST
