@@ -76,7 +76,9 @@ klíč ani nic citlivého nepatří do gitu**. Pipeline zděděná z ostatních 
   `scripts/setup-update-host.sh`; DNS `svatektracker.jsemkoder.cz` = A záznam bez proxy.
 - **Web:** `site/index.html` (`{{VERSION}}` se stampuje při release), náhled pro sdílení
   `site/og.png` z `site/og-image.html` přes `scripts/make-og.sh`. Screenshoty v `docs/`
-  jsou z `SVATEKTRACKER_SNAPSHOT`; `site/screenshot.png` je symlink na `docs/jmeniny.png`.
+  jsou z `SVATEKTRACKER_SNAPSHOT`: panel přes `swift run` (bez osobních hlídaných jmen),
+  `nastaveni.png` spuštěním binárky nainstalované appky (ukáže verzi a skutečný stav).
+  `site/screenshot.png` je symlink na `docs/jmeniny.png` — po změně pusť i `make-og.sh`.
 
 ## Analytika
 

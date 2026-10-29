@@ -28,10 +28,22 @@ enum Snapshot {
         view.cacheDisplay(in: view.bounds, to: rep)
         let url = URL(fileURLWithPath: directory).appendingPathComponent("\(name).png")
         do {
-            try rep.representation(using: .png, properties: [:])?.write(to: url)
+            try trimmed(rep).representation(using: .png, properties: [:])?.write(to: url)
             print("wrote \(url.path)")
         } catch {
             print("failed to write \(url.path): \(error.localizedDescription)")
         }
+    }
+
+    /// Drops the fully transparent rows above and below the content (the
+    /// grouped Form's insets), so the PNG goes into docs/ as is.
+    private static func trimmed(_ rep: NSBitmapImageRep) -> NSBitmapImageRep {
+        let x = rep.pixelsWide / 2
+        let opaque = (0..<rep.pixelsHigh).filter { (rep.colorAt(x: x, y: $0)?.alphaComponent ?? 0) > 0 }
+        guard let top = opaque.first, let bottom = opaque.last,
+            let image = rep.cgImage?.cropping(
+                to: CGRect(x: 0, y: top, width: rep.pixelsWide, height: bottom - top + 1))
+        else { return rep }
+        return NSBitmapImageRep(cgImage: image)
     }
 }
