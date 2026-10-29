@@ -9,18 +9,21 @@ public struct Reminder: Sendable {
 }
 
 public enum ReminderPlan {
-    static let eveningHour = 18
-    static let morningHour = 8
+    public static let eveningHour = 18
+    public static let morningHour = 8
     /// macOS keeps at most 64 pending notifications per app and silently drops
     /// the rest, so the plan keeps the soonest ones.
     public static let limit = 64
 
     /// Reminders for the next name day of each tracked name — the evening
-    /// before and the morning of, names sharing a day combined — plus, when
+    /// before and/or the morning of, names sharing a day combined — plus, when
     /// `shopClosures` is on, an evening heads-up before shops close for a
     /// holiday. Only reminders later than `hour` on `today` are returned,
     /// soonest first.
-    public static func make(trackedNames: [String], shopClosures: Bool, today: Day, hour: Int) -> [Reminder] {
+    public static func make(
+        trackedNames: [String], eveningBefore: Bool, morningOf: Bool, shopClosures: Bool,
+        today: Day, hour: Int
+    ) -> [Reminder] {
         let days = Set(NameDays.nextDates(of: trackedNames, from: today).map(\.day))
 
         var reminders: [Reminder] = []
@@ -28,14 +31,18 @@ public enum ReminderPlan {
             // Calendar order, so a shared day reads as it's printed ("Šarlota a Zoe").
             let names = DayInfo(day).celebrated(by: trackedNames)
             let who = "\(CzechText.celebrates(names.count)) \(CzechText.list(names))"
-            reminders.append(
-                Reminder(
-                    id: "nameday-eve-\(day)", day: day.adding(days: -1), hour: eveningHour,
-                    title: "Zítra \(who)", body: "Nezapomeň popřát."))
-            reminders.append(
-                Reminder(
-                    id: "nameday-\(day)", day: day, hour: morningHour, title: "Dnes \(who)",
-                    body: "Nezapomeň popřát."))
+            if eveningBefore {
+                reminders.append(
+                    Reminder(
+                        id: "nameday-eve-\(day)", day: day.adding(days: -1), hour: eveningHour,
+                        title: "Zítra \(who)", body: "Nezapomeň popřát."))
+            }
+            if morningOf {
+                reminders.append(
+                    Reminder(
+                        id: "nameday-\(day)", day: day, hour: morningHour, title: "Dnes \(who)",
+                        body: "Nezapomeň popřát."))
+            }
         }
 
         if shopClosures {

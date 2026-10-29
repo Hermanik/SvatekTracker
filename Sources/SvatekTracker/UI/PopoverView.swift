@@ -6,6 +6,7 @@ import SwiftUI
 /// coming name days, public holidays, and the user's tracked names.
 struct PopoverView: View {
     @ObservedObject var model: AppModel
+    let openSettings: () -> Void
     @State private var tab: Tab
 
     enum Tab: String, CaseIterable, Identifiable {
@@ -16,8 +17,9 @@ struct PopoverView: View {
         var id: Self { self }
     }
 
-    init(model: AppModel, tab: Tab = .nameDays) {
+    init(model: AppModel, tab: Tab = .nameDays, openSettings: @escaping () -> Void = {}) {
         self.model = model
+        self.openSettings = openSettings
         _tab = State(initialValue: tab)
     }
 
@@ -43,6 +45,10 @@ struct PopoverView: View {
 
             Divider()
             HStack {
+                Button(action: openSettings) {
+                    Label("Nastavení…", systemImage: "gearshape")
+                }
+                .help("Spouštění po přihlášení, upozornění a aktualizace (⌘,)")
                 Spacer()
                 Button("Ukončit") { NSApplication.shared.terminate(nil) }
                     .help("Ukončit SvátekTracker")
@@ -171,24 +177,17 @@ private struct NameDayRow: View {
     }
 }
 
-/// Public holidays in the coming year, plus the shop-closure reminder switch.
+/// Public holidays in the coming year.
 private struct HolidayList: View {
     @ObservedObject var model: AppModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(Holidays.upcoming(from: model.today, days: 365), id: \.self) { holiday in
-                        HolidayRow(holiday: holiday, days: model.today.days(until: holiday.day))
-                    }
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 0) {
+                ForEach(Holidays.upcoming(from: model.today, days: 365), id: \.self) { holiday in
+                    HolidayRow(holiday: holiday, days: model.today.days(until: holiday.day))
                 }
             }
-            Toggle("Den předem upozornit na zavřené obchody", isOn: $model.remindShopClosures)
-                .toggleStyle(.switch)
-                .controlSize(.small)
-                .help("Večer před svátkem, kdy mají obchody nad 200 m² zavřeno, pošlu upozornění.")
-            NotificationsDeniedHint(model: model)
         }
     }
 }
@@ -235,7 +234,7 @@ private struct TrackedList: View {
             if upcoming.isEmpty {
                 Text(
                     query.isEmpty
-                        ? "Vyhledej jméno a hvězdičkou ho přidej mezi hlídané. Večer předem a ráno v den svátku ti pošlu upozornění."
+                        ? "Vyhledej jméno a hvězdičkou ho přidej mezi hlídané — jeho svátek ti připomenu upozorněním."
                         : "Jméno „\(query)“ v kalendáři není."
                 )
                 .font(.callout)
@@ -308,7 +307,7 @@ private struct TrackedStar: View {
 }
 
 /// Shown when the user blocked notifications, which silences every reminder.
-private struct NotificationsDeniedHint: View {
+struct NotificationsDeniedHint: View {
     @ObservedObject var model: AppModel
 
     var body: some View {

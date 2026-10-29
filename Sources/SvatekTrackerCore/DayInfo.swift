@@ -19,6 +19,24 @@ public struct DayInfo: Sendable {
         return holiday?.shortName ?? note ?? ""
     }
 
+    /// The symbol next to the menu bar title.
+    public enum Badge: Sendable { case tracked, holiday, calendar }
+
+    /// The menu bar item: the title (unless `showNames` is off) and a badge — a
+    /// star when a tracked name celebrates, else a flag on public holidays.
+    /// Without the title, a plain calendar keeps the item visible.
+    public func menuBarItem(tracked: [String], showNames: Bool) -> (title: String, badge: Badge?) {
+        let badge: Badge? =
+            if !celebrated(by: tracked).isEmpty {
+                .tracked
+            } else if holiday != nil {
+                .holiday
+            } else {
+                showNames ? nil : .calendar
+            }
+        return (showNames ? title : "", badge)
+    }
+
     /// The day's names that are in `tracked`, in calendar order.
     public func celebrated(by tracked: [String]) -> [String] {
         names.filter(tracked.contains)

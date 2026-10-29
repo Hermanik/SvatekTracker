@@ -62,6 +62,19 @@ final class NameDaysTests: XCTestCase {
         XCTAssertEqual(info.celebrated(by: ["Jana"]), [])
     }
 
+    func testMenuBarItem() {
+        let ordinary = DayInfo(Day(year: 2026, month: 10, day: 27))
+        XCTAssertEqual(ordinary.menuBarItem(tracked: [], showNames: true).title, "Šarlota a Zoe")
+        XCTAssertNil(ordinary.menuBarItem(tracked: [], showNames: true).badge)
+        // Without the names the item still needs something to show.
+        XCTAssertEqual(ordinary.menuBarItem(tracked: [], showNames: false).title, "")
+        XCTAssertEqual(ordinary.menuBarItem(tracked: [], showNames: false).badge, .calendar)
+        // 17 November is both Mahulena's day and a public holiday; the star wins.
+        let holiday = DayInfo(Day(year: 2026, month: 11, day: 17))
+        XCTAssertEqual(holiday.menuBarItem(tracked: [], showNames: true).badge, .holiday)
+        XCTAssertEqual(holiday.menuBarItem(tracked: ["Mahulena"], showNames: false).badge, .tracked)
+    }
+
     func testSearchIgnoresCaseAndDiacritics() {
         XCTAssertEqual(NameDays.search("sarl"), ["Šarlota"])
         XCTAssertEqual(NameDays.search("  ČESTMÍR "), ["Čestmír"])

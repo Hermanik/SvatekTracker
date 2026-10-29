@@ -20,6 +20,7 @@ final class PopoverPanel: NSPanel {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var panel: PopoverPanel!
+    private var settingsWindow: NSWindow?
     private var dismissMonitor: Any?
     private let model = AppModel()
     private let updater = Updater()
@@ -28,9 +29,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureStatusItem()
         configurePanel()
-        model.$today.combineLatest(model.$trackedNames)
-            .sink { [weak self] today, tracked in self?.updateStatusItem(today: today, tracked: tracked) }
+        model.$today.combineLatest(model.$trackedNames, model.$showNamesInMenuBar)
+            .sink { [weak self] today, tracked, showNames in
+                self?.updateStatusItem(today: today, tracked: tracked, showNames: showNames)
+            }
             .store(in: &subscriptions)
+        LoginItem.enableOnFirstLaunch()
         Log.app.info("launched")
     }
 
@@ -44,19 +48,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
     }
 
-    /// Today's names (or holiday) as the title; a star when a tracked name
-    /// celebrates today, otherwise a flag on public holidays.
-    private func updateStatusItem(today: Day, tracked: [String]) {
+    /// Title and badge as `DayInfo.menuBarItem` decides; the tooltip always
+    /// names today and tomorrow.
+    private func updateStatusItem(today: Day, tracked: [String], showNames: Bool) {
         guard let button = statusItem.button else { return }
         let info = DayInfo(today)
-        button.title = info.title
+        let item = info.menuBarItem(tracked: tracked, showNames: showNames)
+        button.title = item.title
         let symbol: String? =
-            if !info.celebrated(by: tracked).isEmpty {
-                "star.fill"
-            } else if info.holiday != nil {
-                "flag.fill"
-            } else {
-                nil
+            switch item.badge {
+            case .tracked: "star.fill"
+            case .holiday: "flag.fill"
+            case .calendar: "calendar"
+            case nil: nil
             }
         button.image = symbol.flatMap { NSImage(systemSymbolName: $0, accessibilityDescription: nil) }
         let tomorrow = DayInfo(today.adding(days: 1)).title
@@ -78,13 +82,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.autoenablesItems = false
         menu.addItem(withTitle: "O aplikaci SvátekTracker", action: #selector(showAbout), keyEquivalent: "")
+        menu.addItem(withTitle: "Nastavení…", action: #selector(showSettings), keyEquivalent: ",")
         let updates = NSMenuItem(
             title: "Zkontrolovat aktualizace…", action: #selector(checkForUpdates), keyEquivalent: "")
         updates.isEnabled = updater.isAvailable
         menu.addItem(updates)
-        let login = NSMenuItem(title: "Spouštět po přihlášení", action: #selector(toggleLoginItem), keyEquivalent: "")
-        login.state = LoginItem.isEnabled ? .on : .off
-        menu.addItem(login)
         menu.addItem(.separator())
         menu.addItem(withTitle: "Ukončit SvátekTracker", action: #selector(quit), keyEquivalent: "q")
         for item in menu.items { item.target = self }
@@ -93,7 +95,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func checkForUpdates() { updater.checkForUpdates() }
 
-    @objc private func toggleLoginItem() { LoginItem.setEnabled(!LoginItem.isEnabled) }
+    @objc private func showSettings() {
+        hide()
+        // A closed window is rebuilt, so the view re-reads what it can't
+        // observe (the login item) and nothing lingers between openings.
+        let window = settingsWindow.flatMap { $0.isVisible ? $0 : nil } ?? makeSettingsWindow()
+        settingsWindow = window
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+    }
+
+    private func makeSettingsWindow() -> NSWindow {
+        let window = NSWindow(
+            contentViewController: NSHostingController(rootView: SettingsView(model: model, updater: updater)))
+        window.title = "Nastavení"
+        window.styleMask = [.titled, .closable]
+        window.isReleasedWhenClosed = false
+        window.center()
+        return window
+    }
 
     @objc private func showAbout() {
         NSApp.activate(ignoringOtherApps: true)
@@ -114,7 +134,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.backgroundColor = .clear
         panel.hasShadow = true
         panel.onCancel = { [weak self] in self?.hide() }
-        panel.contentView = NSHostingView(rootView: PopoverView(model: model))
+        panel.contentView = NSHostingView(
+            rootView: PopoverView(model: model, openSettings: { [weak self] in self?.showSettings() }))
     }
 
     private func show() {

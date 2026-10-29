@@ -20,6 +20,7 @@ Vyžaduje Xcode (Swift 6.2+). Cíl: **arm64, macOS 14+**.
   `scripts/release-dmg.sh` — viz **Release & distribuce**.
 - Vizuální kontrola panelu bez klikání a bez Screen Recording oprávnění:
   `SVATEKTRACKER_SNAPSHOT=/tmp/snap swift run SvatekTracker` → PNG za každou záložku
+  + `settings.png`
 - Ikona: `swift scripts/make-icon.swift` (výstup `assets/SvatekTracker.icns` je commitnutý)
 
 ## Architektura
@@ -32,12 +33,16 @@ Vyžaduje Xcode (Swift 6.2+). Cíl: **arm64, macOS 14+**.
   - `ReminderPlan` — co a kdy upozornit (rozhoduje se tady, ne v systémové vrstvě).
   - `CzechText` — české datumy, skloňování („za 3 dny“ / „za 5 dní“), výčty.
 - `Sources/SvatekTracker` — executable:
-  - `App/AppDelegate` — `NSStatusItem`, panel pod ikonou, pravé tlačítko = menu.
+  - `App/AppDelegate` — `NSStatusItem`, panel pod ikonou, pravé tlačítko = menu,
+    okno nastavení.
   - `App/AppModel` — dnešní den (přepíná o půlnoci, po probuzení, při změně hodin/zóny),
     hlídaná jména a nastavení v `UserDefaults`.
   - `App/Reminders` — předává `ReminderPlan` do `UNUserNotificationCenter`.
+  - `App/LoginItem` — spouštění po přihlášení (`SMAppService`); první start
+    z `/Applications` ho jednou zapne, pak rozhoduje uživatel.
   - `App/Updater` — Sparkle přes dlopen (bez linkování; `swift run` = no-op).
   - `UI/PopoverView` — SwiftUI panel (Jmeniny / Svátky / Hlídané).
+  - `UI/SettingsView` — okno nastavení (⚙︎ v panelu / pravé tlačítko → Nastavení…).
 
 ## Pravidla
 
