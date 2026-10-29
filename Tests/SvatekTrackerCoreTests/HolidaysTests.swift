@@ -34,6 +34,15 @@ final class HolidaysTests: XCTestCase {
         XCTAssertEqual(Holidays.on(Day(year: 2026, month: 5, day: 1))?.shops, .open)
     }
 
+    func testSummary() {
+        XCTAssertEqual(
+            Holidays.on(Day(year: 2026, month: 10, day: 28))?.summary, "státní svátek · velké obchody zavřené")
+        XCTAssertEqual(Holidays.on(Day(year: 2026, month: 11, day: 17))?.summary, "státní svátek")
+        XCTAssertEqual(
+            Holidays.on(Day(year: 2026, month: 12, day: 24))?.summary, "ostatní svátek · velké obchody zavřené od 12:00"
+        )
+    }
+
     func testOnDay() {
         XCTAssertEqual(
             Holidays.on(Day(year: 2026, month: 10, day: 28))?.name, "Den vzniku samostatného československého státu")

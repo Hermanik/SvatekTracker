@@ -110,7 +110,7 @@ private struct HolidayBanner: View {
                 Text(holiday.name)
                     .font(.callout.weight(.medium))
                     .fixedSize(horizontal: false, vertical: true)
-                Text([holiday.kind.label, holiday.shops.label].compactMap { $0 }.joined(separator: " · "))
+                Text(holiday.summary)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -141,28 +141,42 @@ private struct NameDayRow: View {
     let offset: Int
     @ObservedObject var model: AppModel
 
+    private static let dateWidth: CGFloat = 72
+    private static let spacing: CGFloat = 8
+
     var body: some View {
         let tracked = !info.celebrated(by: model.trackedNames).isEmpty
-        HStack(spacing: 8) {
-            Text(CzechText.shortDate(info.day))
-                .monospacedDigit()
-                .foregroundStyle(info.day.isWeekend ? .secondary : .primary)
-                .frame(width: 72, alignment: .leading)
-            Text(info.title)
-                .fontWeight(tracked ? .semibold : .regular)
-                .foregroundStyle(info.names.isEmpty ? .secondary : .primary)
-                .lineLimit(1)
-            if tracked {
-                TrackedStar()
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: Self.spacing) {
+                Text(CzechText.shortDate(info.day))
+                    .monospacedDigit()
+                    .foregroundStyle(info.day.isWeekend ? .secondary : .primary)
+                    .frame(width: Self.dateWidth, alignment: .leading)
+                Text(info.title)
+                    .fontWeight(tracked ? .semibold : .regular)
+                    .foregroundStyle(info.names.isEmpty ? .secondary : .primary)
+                    .lineLimit(1)
+                if tracked {
+                    TrackedStar()
+                }
+                Spacer()
+                RelativeDays(days: offset)
             }
+            // The holiday gets its own line under the names, past the date
+            // column: a flag alone beside them reads as part of the name day.
             if let holiday = info.holiday {
-                Image(systemName: "flag.fill")
-                    .font(.caption)
-                    .foregroundStyle(.red)
-                    .help(holiday.name)
+                Label {
+                    Text(holiday.name)
+                        .fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    Image(systemName: "flag.fill")
+                        .foregroundStyle(.red)
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.leading, Self.dateWidth + Self.spacing)
+                .help(holiday.summary)
             }
-            Spacer()
-            RelativeDays(days: offset)
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())

@@ -46,6 +46,12 @@ public struct Holiday: Hashable, Sendable {
     public let kind: Kind
     public let shops: Shops
 
+    /// The kind, plus the shop closure when there is one:
+    /// "státní svátek · velké obchody zavřené".
+    public var summary: String {
+        [kind.label, shops.label].compactMap { $0 }.joined(separator: " · ")
+    }
+
     /// `shortName` defaults to `name` for the holidays whose name is short already.
     init(day: Day, name: String, shortName: String? = nil, kind: Kind, shops: Shops) {
         self.day = day
